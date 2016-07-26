@@ -25,7 +25,10 @@ def get_upload_filename(upload_name, user):
         user_path = ''
 
     # Generate date based path to put uploaded file.
-    date_path = datetime.now().strftime('%Y/%m/%d')
+    if getattr(settings, 'CKEDITOR_RESTRICT_BY_DATE', False):
+        date_path = datetime.now().strftime('%Y/%m/%d')
+    else:
+        date_path = ''
 
     # Complete upload path (upload_path + date_path).
     upload_path = os.path.join(
@@ -158,7 +161,6 @@ def is_image(path):
 
 
 def browse(request):
-    
     files = get_files_browse_urls(request.user)
     if request.method == 'POST':
         form = SearchForm(request.POST)
@@ -172,7 +174,7 @@ def browse(request):
     dir_list = sorted(set(os.path.dirname(f['src']) for f in files), reverse=True)
 
     # Ensures there are no objects created from Thumbs.db files - ran across this problem while developing on Windows
-    if os.name == 'nt': 
+    if os.name == 'nt':
         files = [f for f in files if os.path.basename(f['src']) != 'Thumbs.db']
 
     context = RequestContext(request, {
